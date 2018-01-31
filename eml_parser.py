@@ -42,6 +42,8 @@ def main():
     files = os.listdir(".")
 
     for filename in files:
+        if not filename.endswith(".eml"):
+            continue
         print("Current parsing %s." % filename)
         flag, parsed = parse(filename)
         filetype = ".txt" if flag else ".html"
