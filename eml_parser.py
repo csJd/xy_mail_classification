@@ -9,6 +9,7 @@ def parse(url):
     :param url: The url to the file to parse
     :return: (flag, Parsed string) flag = True for plain text, False for html
     """
+
     txt = ""
     html = ""
     with open(url) as f:
@@ -37,6 +38,7 @@ def main():
 
     :return:
     """
+
     dir_path = os.path.join("data", "emls")  # url to ./data/emls
     os.chdir(dir_path)
     files = os.listdir(".")
