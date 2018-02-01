@@ -1,13 +1,15 @@
 import email
 import chardet
 import os
+import html2text
+# pip install html2text
 
 
 def parse(url):
-    """ Parse eml file to plain string (if it has) or html
+    """ Parse eml file to plain string
 
     :param url: The url to the file to parse
-    :return: (flag, Parsed string) flag = True for plain text, False for html
+    :return: Parsed string
     """
 
     txt = ""
@@ -27,10 +29,11 @@ def parse(url):
                 else:
                     html = decoded_bytes.decode(encoding=enc)
 
-        if flag:
-            return flag, txt
-        else:
-            return flag, html
+        if not flag:
+            h2t = html2text.HTML2Text()
+            txt = h2t.handle(html)  # transfer html to plain text
+
+        return txt
 
 
 def main():
@@ -47,8 +50,8 @@ def main():
         if not filename.endswith(".eml"):
             continue
         print("Current parsing %s." % filename)
-        flag, parsed = parse(filename)
-        filetype = ".txt" if flag else ".html"
+        parsed = parse(filename)
+        filetype = ".txt"
         parsed_url = os.path.join("..", "parsed", filename + filetype)  # url to ./data/parsed/
         with open(parsed_url, "w", encoding='utf-8') as f:
             f.write(parsed)
