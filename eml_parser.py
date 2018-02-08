@@ -22,7 +22,9 @@ def parse(url):
             cdp = str(part.get('Content-Disposition'))
             if (ctype == 'text/plain' or ctype == 'text/html') and 'attachment' not in cdp:
                 decoded_bytes = part.get_payload(decode=True)
-                enc = chardet.detect(decoded_bytes)['encoding']
+                enc = part.get_content_charset()
+                if enc is None:
+                    enc = chardet.detect(decoded_bytes)['encoding']
                 if 'plain' in ctype:
                     txt += decoded_bytes.decode(encoding=enc)
                     flag = True
