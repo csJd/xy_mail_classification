@@ -14,9 +14,15 @@ def parse(url):
 
     txt = ""
     html = ""
-    with open(url) as f:
+    with open(url, 'rb') as bf:
         flag = False  # if the eml file has 'text/plain' part
-        msg = email.message_from_file(f)
+        # raw_data = f.read()
+        # f.seek(0)
+        # fenc = chardet.detect(raw_data)
+
+        # msg = email.message_from_file(f, encoding="utf-8")
+        msg = email.message_from_binary_file(bf)
+
         for part in msg.walk():
             ctype = part.get_content_type()
             cdp = str(part.get('Content-Disposition'))
@@ -25,11 +31,15 @@ def parse(url):
                 enc = part.get_content_charset()
                 if enc is None:
                     enc = chardet.detect(decoded_bytes)['encoding']
-                if 'plain' in ctype:
-                    txt += decoded_bytes.decode(encoding=enc)
-                    flag = True
-                else:
-                    html = decoded_bytes.decode(encoding=enc)
+
+                try:
+                    if 'plain' in ctype:
+                        txt += decoded_bytes.decode(encoding=enc)
+                        flag = True
+                    else:
+                        html = decoded_bytes.decode(encoding=enc)
+                except UnicodeError or TypeError:  # few special files parse failed
+                    pass
 
         if not flag:
             h2t = html2text.HTML2Text()
