@@ -31,6 +31,8 @@ def parse(url):
                 enc = part.get_content_charset()
                 if enc is None:
                     enc = chardet.detect(decoded_bytes)['encoding']
+                if enc is None:
+                    enc = 'utf-8'
 
                 try:
                     if 'plain' in ctype:
@@ -38,7 +40,7 @@ def parse(url):
                         flag = True
                     else:
                         html = decoded_bytes.decode(encoding=enc)
-                except UnicodeError or TypeError:  # few special files parse failed
+                except Exception:  # few special files parse failed
                     pass
 
         if not flag:
@@ -64,6 +66,8 @@ def main():
         print("Current parsing %s." % filename)
         parsed = parse(filename)
         filetype = ".txt"
+
+        filename = filename[:80]  # avoid filename too long (255bytes)
         parsed_url = os.path.join("..", "parsed", filename + filetype)  # url to ./data/parsed/
         with open(parsed_url, "w", encoding='utf-8') as f:
             f.write(parsed)
