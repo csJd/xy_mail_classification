@@ -86,7 +86,7 @@ def skl_tf_idf(train_url, test_url):
 def predict(clf, X, y):
     predy = clf.predict(X)
     # print(precision_recall_fscore_support(y, predy))
-    accuracy_score(y, predy)
+    print(accuracy_score(y, predy))
 
 
 def main():
