@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn import svm
-from sklearn.neighbors import NearestNeighbors
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import precision_recall_fscore_support
@@ -101,7 +101,7 @@ def main():
     #    dic_file.write(str(len(dic)) + str(dic))
     X, y, testX, testy = skl_tf_idf(train_url, test_url)
     clf_svm = svm.SVC()
-    clf_knn = NearestNeighbors()
+    clf_knn = KNeighborsClassifier()
     clf_rf = RandomForestClassifier()
     clf_gbdt = GradientBoostingClassifier()
     clf_xgb = xgboost.XGBClassifier()
