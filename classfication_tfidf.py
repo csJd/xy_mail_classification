@@ -7,6 +7,8 @@ from sklearn import svm
 from sklearn.neighbors import NearestNeighbors
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.metrics import precision_recall_fscore_support
+from sklearn.metrics import accuracy_score
 import xgboost
 
 
@@ -32,57 +34,59 @@ def load_data(url):
                     dic[word] = 1
 
     # return sorted(dic.items(), key=lambda x: x[1], reverse=True)
-    return dic, lines, y
+    return lines, y
 
 
+def load_test(test_url):
+    lines, y = load_data(test_url)
 
-def skl_tf_idf(url):
+
+def get_cntv_train(train_url):
+    """
+    :param train_url:
+    :return:
+    """
+    lines, _ = load_data(train_url)
+    cntv = CountVectorizer()
+    return cntv.fit_transform(lines)
+
+
+def skl_tf_idf(train_url, test_url):
     """
 
     :param url:
     :return:
     """
-    dic, lines, y = load_data(url)
-    vectorizer = CountVectorizer()
-    tf_train = vectorizer.fit_transform(lines)
-
+    lines, y = load_data(train_url)
+    train_vectorizer = CountVectorizer()
+    train_count = train_vectorizer.fit_transform(lines)
     y = np.array(y)
+
+    test_lines, testy = load_data(test_url)
+    # use vocabulary from train data
+    test_vectorizer = CountVectorizer(vocabulary=train_vectorizer.vocabulary_)
+    test_count = test_vectorizer.fit_transform(test_lines)
+    testy = np.array(testy)
+
     # word = vectorizer.get_feature_names()
-    # print(word)  # see tf
-    # print(X.toarray)  # tf vector
+    # print(word)  # see count
+    # print(X.toarray)  # count vector
 
-    transformer = TfidfTransformer()
-    X = transformer.fit_transform(X, y)
-    # print(X.shape)
-    # print(y.shape)
-    return X, y
+    train_transformer = TfidfTransformer()
+    X = train_transformer.fit_transform(train_count, y)
+    # print(X.shape, y.shape)
 
+    test_transformer = TfidfTransformer()
+    testX = test_transformer.fit_transform(test_count, testy)
+    # print(testX.shape, testy.shape)
 
-def clfs(X, y):
-    """
-
-    :param X:
-    :param y:
-    :return:
-    """
+    return X, y, testX, testy
 
 
-    clf_svm = svm.SVC()
-    clf_svm.fit(X, y)
-
-    clf_knn = NearestNeighbors()
-    clf_knn.fit(X, y)
-
-    clf_rf = RandomForestClassifier()
-    clf_rf.fit(X, y)
-
-    clf_gbdt = GradientBoostingClassifier()
-    clf_gbdt.fit(X, y)
-
-    clf_xgb = xgboost.XGBClassifier()
-    clf_xgb.fit(X, y)
-
-
+def predict(clf, X, y):
+    predy = clf.predict(X)
+    # print(precision_recall_fscore_support(y, predy))
+    accuracy_score(y, predy)
 
 
 def main():
@@ -90,12 +94,32 @@ def main():
     :return:
     """
 
-    txt_url = os.path.join("processed_data", "shuffle_train_data.csv")  # url to csv file
+    train_url = os.path.join("processed_data", "shuffle_train_data.csv")  # url to train file
+    test_url = os.path.join("processed_data", "shuffle_test_data.csv")  # url to test file
     # dic = get_dict(txt_url)
     # with open('dic.txt', 'w', encoding='utf-8') as dic_file:
     #    dic_file.write(str(len(dic)) + str(dic))
-    X, y = skl_tf_idf(txt_url)
+    X, y, testX, testy = skl_tf_idf(train_url, test_url)
+    clf_svm = svm.SVC()
+    clf_knn = NearestNeighbors()
+    clf_rf = RandomForestClassifier()
+    clf_gbdt = GradientBoostingClassifier()
+    clf_xgb = xgboost.XGBClassifier()
 
+    clf = clf_svm.fit(X, y)
+    predict(clf, testX, testy)
+
+    clf = clf_knn.fit(X, y)
+    predict(clf, testX, testy)
+
+    clf = clf_rf.fit(X, y)
+    predict(clf, testX, testy)
+
+    clf = clf_gbdt.fit(X, y)
+    predict(clf, testX, testy)
+
+    clf = clf_xgb.fit(X, y)
+    predict(clf, testX, testy)
 
 
 if __name__ == '__main__':
