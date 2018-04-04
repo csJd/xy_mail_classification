@@ -7,9 +7,10 @@ from sklearn import svm
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.metrics import precision_recall_fscore_support
+from sklearn.externals import joblib
 from sklearn.metrics import accuracy_score
 import xgboost
+import pickle
 
 
 
@@ -84,9 +85,18 @@ def skl_tf_idf(train_url, test_url):
 
 
 def predict(clf, X, y):
-    predy = clf.predict(X)
+    return clf.predict(X)
     # print(precision_recall_fscore_support(y, predy))
-    print(accuracy_score(y, predy))
+    # print(accuracy_score(y, predy))
+
+
+def clf_stacking(clfs, X, y):
+    y_pred = np.zeros(y.shape)
+    for clf in clfs:
+        y_pred += predict(clf, X, y)
+    y_pred = y_pred > 1.5
+    print(accuracy_score(y, y_pred))
+
 
 
 def main():
@@ -95,7 +105,8 @@ def main():
     """
 
     train_url = os.path.join("processed_data", "shuffle_train_data.csv")  # url to train file
-    test_url = os.path.join("processed_data", "shuffle_test_data.csv")  # url to test file
+    # test_url = os.path.join("processed_data", "shuffle_test_data.csv")  # url to test file
+    test_url = os.path.join("processed_data", "test.csv")  # url to test file
     # dic = get_dict(txt_url)
     # with open('dic.txt', 'w', encoding='utf-8') as dic_file:
     #    dic_file.write(str(len(dic)) + str(dic))
@@ -107,19 +118,29 @@ def main():
     clf_xgb = xgboost.XGBClassifier()
 
     clf = clf_svm.fit(X, y)
-    predict(clf, testX, testy)
+    # predict(clf, testX, testy)
+
 
     clf = clf_knn.fit(X, y)
-    predict(clf, testX, testy)
+    # predict(clf, testX, testy)
 
-    clf = clf_rf.fit(X, y)
-    predict(clf, testX, testy)
+    clfs = list()
+    clf_rf.fit(X, y)
+    # predict(clf_rf, testX, testy)
+    joblib.dump(clf_rf, 'rf.pkl')
+    clfs.append(clf_rf)
 
-    clf = clf_gbdt.fit(X, y)
-    predict(clf, testX, testy)
+    clf_gbdt.fit(X, y)
+    # predict(clf_gbdt, testX, testy)
+    joblib.dump(clf_gbdt, 'gbdt.pkl')
+    clfs.append(clf_gbdt)
 
-    clf = clf_xgb.fit(X, y)
-    predict(clf, testX, testy)
+    clf_xgb.fit(X, y)
+    # predict(clf, testX, testy)
+    joblib.dump(clf_xgb, 'xgb.pkl')
+    clfs.append(clf_xgb)
+
+    clf_stacking(clfs, testX, testy)
 
 
 if __name__ == '__main__':
