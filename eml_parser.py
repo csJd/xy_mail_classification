@@ -1,8 +1,8 @@
 import email
 import chardet
+import json
 import os
 import html2text
-# pip install html2text
 
 
 def parse(url):
@@ -56,21 +56,30 @@ def main():
     :return:
     """
 
-    dir_path = os.path.join("data", "emls")  # url to ./data/emls
-    os.chdir(dir_path)
-    files = os.listdir(".")
+    with open('config.json') as f:
+        config = json.load(f)
 
+    eml_dir = config.get('eml_dir')  # url to eml files
+
+    files = os.listdir(eml_dir)
+
+    print('Parsing...')
     for filename in files:
         if not filename.endswith(".eml"):
             continue
-        print("Current parsing %s." % filename)
-        parsed = parse(filename)
+        file_url = os.path.join(eml_dir, filename)
+        # print("Current parsing %s." % file_url)
+        parsed = parse(file_url)
         filetype = ".txt"
-
         filename = filename[:80]  # avoid filename too long (255bytes)
-        parsed_url = os.path.join("..", "parsed", filename + filetype)  # url to ./data/parsed/
+        parsed_dir = config.get('parsed_dir')
+        os.makedirs(parsed_dir, exist_ok=True)  # make dirs if not exists
+
+        parsed_url = os.path.join(parsed_dir, filename + filetype)  # url to ./data/parsed/
         with open(parsed_url, "w", encoding='utf-8') as f:
             f.write(parsed)
+
+    print('Done.')
 
 
 if __name__ == '__main__':

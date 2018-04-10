@@ -1,0 +1,4 @@
+{
+  "eml_dir": "./data/emls",
+  "parsed_dir": "./data/parsed"
+}
